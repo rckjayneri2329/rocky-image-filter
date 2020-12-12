@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { Response } from 'express';
+import { Request, Response } from express;
 import bodyParser from 'body-parser';
 import { filterImageFromURL, deleteLocalFiles } from './util/util';
 
@@ -29,21 +30,24 @@ import { filterImageFromURL, deleteLocalFiles } from './util/util';
 
   /**************************************************************************** */
 
-  app.get("/filteredimage", async (req, res) => {
+  app.get("/filteredimage", async (req: Request, res: Response) => {
     const myImageURL = req.query.image_url;
 
     if (!myImageURL) {
       return res.status(400).send({ message: "You have either provided a bad URL or not one at all." });
     }
-
+    // call filterImageFromURL(image_url) to filter the image
     try {
-      console;
-      const myFilteredIMAGE = await filterImageFromURL(myImageURL);
-      res.sendFile(myFilteredIMAGE, () => deleteLocalFiles([myFilteredIMAGE]));
+      const photo: string = await filterImageFromURL(image_url);
+      if (!photo) {
+        return res.status(500).send({ message: "Can\'t load photo" });
+      }
+      // send the resulting file in the response
+      res.status(200).sendFile(photo);
+    } catch (e) {
+      res.status(422).send({ message: "Check if the image url points to a valid file." });
     }
-    catch (error) {
-      res.sendStatus(422).send("The url you have given is not able to be processed at this moment.");
-    }
+
   });
 
   //! END @TODO1
